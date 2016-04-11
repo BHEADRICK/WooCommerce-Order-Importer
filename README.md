@@ -11,6 +11,7 @@ Prior to installing or activating this plugin, you must first export the data yo
 
 The following is the sql to use to create and populate the temp tables for your data:
 (feel free to add an extra where clause if you only want orders after a certain orderid or date, just be consistent with all of the queries)
+
     create TABLE temp_orders as select * from wp_posts where post_type = 'shop_order';
     create table temp_postmeta as select pm.* from wp_postmeta pm join wp_posts p on p.ID = pm.post_id where post_type = 'shop_order';
     create table temp_orderitems as select oi.* from wp_woocommerce_order_items oi join wp_posts p on p.ID = oi.order_id where post_type = 'shop_order';
