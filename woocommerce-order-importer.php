@@ -48,6 +48,13 @@ class WooCommerceOrderImporter {
 
 
 		$orders = $wpdb->get_results($ordersql, ARRAY_A);
+
+        if(count($orders==0)){
+            deactivate_plugins( plugin_basename( __FILE__ ) );
+
+            wp_die( __( 'No orders found to import. Make sure you have imported the data into temp tables before activating!', 'my-plugin' ) );
+        }
+
 		foreach($orders as $order){
 			$order_id = $order['ID'];
 			unset($order['ID']);
