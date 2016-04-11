@@ -25,3 +25,6 @@ The following is the sql to use to create and populate the temp tables for your 
     create table temp_users as select u.* from wp_users u join wp_postmeta pm on  pm.meta_key = '_customer_user' and pm.meta_value = u.ID
 
     create table temp_usermeta as select um.* from wp_usermeta um join wp_users u on u.ID = um.user_id join wp_postmeta pm on  pm.meta_key = '_customer_user' and pm.meta_value = u.ID
+
+
+Now export all these tables and import them to the database where you want to import these orders and activate the plugin (the import runs upon plugin activation.) Once the import is complete, you can drop the temp tables and deactivate/delete this plugin from your site. 
