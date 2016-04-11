@@ -4,8 +4,8 @@ Plugin Name: WooCommerce Order Importer
 Plugin URI:
 Description:
 Version: 1.0.0
-Author: Author Name
-Author URI: https://authorurl.com
+Author: Catman Studios
+Author URI: https://catmanstudios.com
  License: GNU General Public License v3.0
  License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -62,8 +62,8 @@ class WooCommerceOrderImporter {
 			$metasql = 'select * from temp_postmeta where post_id = ' . $order_id;
 			$itemsql = 'select * from temp_orderitems where order_id = ' . $order_id;
 			$meta = $wpdb->get_results($metasql);
-			
-			
+
+
 			$items = $wpdb->get_results($itemsql, ARRAY_A);
 			//preserve original order id
 			update_post_meta($post, '_order_number', $order_id);
