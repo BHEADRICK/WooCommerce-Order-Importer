@@ -49,11 +49,11 @@ class WooCommerceOrderImporter {
 
 		$orders = $wpdb->get_results($ordersql, ARRAY_A);
 		foreach($orders as $order){
-			$order_id = $order->ID;
-			unset($order->ID);
-			$order_key = $wpdb->get_var("select meta_value from temp_postmeta where post_id = $order->ID and meta_key = '_order_key'");
+			$order_id = $order['ID'];
+			unset($order['ID']);
+			$order_key = $wpdb->get_var("select meta_value from temp_postmeta where post_id = $order_id and meta_key = '_order_key'");
 			// check if this order has been added already and skip if it has;
-			$existing_orderid= $wpdb->get_var("select post_id from $wpdb->postmeta join $wpdb->posts on ID = post_id where meta_key='_order_key' and meta_value=$order_key");
+			$existing_orderid= $wpdb->get_var("select post_id from $wpdb->postmeta join $wpdb->posts on ID = post_id where meta_key='_order_key' and meta_value='$order_key'");
 			if($existing_orderid != null) continue;
 
 			$customer_user = $this->get_customer_user_id($order_id);
@@ -86,9 +86,9 @@ class WooCommerceOrderImporter {
 			}
 
 			foreach($items as $item){
-				$orderitemid = $item->order_item_id;
-				unset($item->order_item_id);
-				$item->order_id = $post;
+				$orderitemid = $item['order_item_id'];
+				unset($item['order_item_id']);
+				$item['order_id'] = $post;
 				$wpdb->insert('wp_woocommerce_order_items', $item);
 				$itemmetasql = 'select * from temp_orderitemmeta where order_item_id='. $orderitemid;
 				$itemid = $wpdb->insert_id;
@@ -96,8 +96,8 @@ class WooCommerceOrderImporter {
 				$itemmeta = $wpdb->get_results($itemmetasql, ARRAY_A);
 
 				foreach($itemmeta as $meta){
-					unset($meta->meta_id);
-					$meta->order_item_id = $itemid;
+					unset($meta['meta_id']);
+					$meta['order_item_id'] = $itemid;
 					$wpdb->insert('wp_woocommerce_order_itemmeta', $meta);
 				}
 			}
@@ -110,21 +110,23 @@ class WooCommerceOrderImporter {
 	function get_customer_user_id($order_id){
 		global $wpdb;
 
-		$email = $wpdb->get_var("select meta_value from temp_postmeta where post_id = $order_id and meta_key = '_billing_email'");
-		$old_user_id = $wpdb->get_var("select meta_value from temp_postmeta where post_id = $order_id and meta_key = '_customer_user'");
 
+		$old_user_id = $wpdb->get_var("select meta_value from temp_postmeta where post_id = $order_id and meta_key = '_customer_user'");
+		$email = $wpdb->get_var("select user_email from temp_users where ID = $old_user_id");
 		$user = get_user_by('email', $email);
+
 		if($user  ){
 			return $user->ID;
-		}else{
-			$usersql = "select id from temp_users where user_email='" . $email . "'";
-			$user_id = $wpdb->get_var($usersql);
 
-			if($user_id!= null){
-				return $user_id;
-			}else{
-				$parts = explode('@', $email);
-				$username = $parts[0];
+		}else{
+				$old_user = $wpdb->get_row("select * from temp_users where ID = $old_user_id");
+				$username = $old_user->user_login;
+				if(username_exists($username)){
+					$parts = explode('@', $email);
+					$username = $parts[0];
+				}
+
+
 				$password = wp_generate_password($length=12, $include_standard_special_chars=false);
 				if(username_exists($username)){
 					$i = 1;
@@ -145,9 +147,8 @@ class WooCommerceOrderImporter {
 						update_user_meta($user_id, $meta->meta_key, $meta->meta_value);
 				}
 
-
 				return $user_id;
-			}
+
 		}
 	}
 
